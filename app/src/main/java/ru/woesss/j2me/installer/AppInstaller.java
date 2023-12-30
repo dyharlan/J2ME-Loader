@@ -150,7 +150,10 @@ public class AppInstaller {
 			// Load kjx file
 			parseKjx();
 			newDesc = new Descriptor(srcFile, true);
-		} else {
+		} else if(name.toLowerCase().endsWith(".jam")){
+			//parseJam();
+		}
+		else {
 			srcJar = srcFile;
 			newDesc = loadManifest(srcFile);
 		}
