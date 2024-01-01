@@ -68,6 +68,8 @@ public class Descriptor {
 	public static final String MIDLET_PUSH_N = "MIDlet-Push-";
 	public static final String NOKIA_MIDLET_UID_N = "Nokia-MIDlet-UID-";
 	public static final String NOKIA_UI_ENHANCEMENT = "Nokia-UI-Enhancement";
+	public static final String DOJA_APP_CLASS = "AppClass";
+	public static final String DOJA_SCRATCHPAD_SIZE = "SPsize";
 
 	private static final String FAIL_ATTRIBUTE = "Fail attribute '%s: %s'";
 	private final boolean isJad;
@@ -104,6 +106,43 @@ public class Descriptor {
 		}
 		verify();
 
+	}
+	public Descriptor(HashMap<String, String> jamAttributes) throws IOException {
+		this.isJad = false;
+		if(jamAttributes.containsKey("AppName")){
+			attributes.put(MIDLET_NAME, jamAttributes.get("AppName"));
+		}
+		if(jamAttributes.containsKey("AppVer")){
+			attributes.put(MIDLET_VERSION, jamAttributes.get("AppVer"));
+		}else{
+			attributes.put(MIDLET_VERSION, "Unknown");
+		}
+		if(jamAttributes.containsKey("SPsize")){
+			attributes.put(DOJA_SCRATCHPAD_SIZE, jamAttributes.get("SPsize"));
+		}
+		//dummy vendor
+		attributes.put(MIDLET_VENDOR, "Unknown");
+
+		if(jamAttributes.containsKey("PackageURL")){
+			attributes.put(MIDLET_JAR_URL, jamAttributes.get("PackageURL"));
+		}
+		if(jamAttributes.containsKey("AppSize")){
+			attributes.put(MIDLET_JAR_SIZE,"AppSize");
+		}
+		if(jamAttributes.containsKey("AppClass")){
+			attributes.put(DOJA_APP_CLASS, "AppClass");
+		}
+		if(jamAttributes.containsKey("ProfileVer")){
+			attributes.put(MICROEDITION_PROFILE, "ProfileVer");
+		}else{
+			attributes.put(MICROEDITION_PROFILE, "Doja-5.1");
+		}
+		if(jamAttributes.containsKey("ConfigurationVer")){
+			attributes.put(MICROEDITION_CONFIGURATION, "ConfigurationVer");
+		}else{
+			attributes.put(MICROEDITION_CONFIGURATION, "CLDC-1.1");
+		}
+		verify();
 	}
 
 	public int compareVersion(String version) {
