@@ -19,6 +19,7 @@ package ru.woesss.j2me.installer;
 import android.app.Application;
 import android.net.Uri;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.android.dx.command.dexer.Main;
 
@@ -26,12 +27,14 @@ import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -39,6 +42,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.jar.JarFile;
 
@@ -118,6 +122,7 @@ public class AppInstaller {
 		}
 		boolean isLocal;
 		boolean isContentUri = uri.getScheme().equals("content");
+		Log.i(TAG,uri.getScheme());
 		if ("http".equals(uri.getScheme()) || "https".equals(uri.getScheme())) {
 			downloadJad();
 			isLocal = false;
@@ -127,7 +132,7 @@ public class AppInstaller {
 		}
 
 		String name = srcFile.getName();
-
+		Log.i(TAG, name);
 		if (name.toLowerCase().endsWith(".jad")) {
 			newDesc = new Descriptor(srcFile, true);
 			String url = newDesc.getJarUrl();
@@ -151,7 +156,24 @@ public class AppInstaller {
 			parseKjx();
 			newDesc = new Descriptor(srcFile, true);
 		} else if(name.toLowerCase().endsWith(".jam")){
-			//parseJam();
+			newDesc = parseJam();
+			manifest = newDesc;
+			String url = newDesc.getJarUrl();
+			if (url == null) {
+				throw new ConverterException("Jam does not have: " + Descriptor.MIDLET_JAR_URL);
+			}
+			Uri uri = Uri.parse(url);
+			String scheme = uri.getScheme();
+			String host = uri.getHost();
+			if (isLocal && scheme == null && host == null) {
+				if (isContentUri && !FileUtils.isExternalStorageLegacy()) {
+					emitter.onSuccess(STATUS_NEED_JAD);
+					return;
+				} else if (!checkJarFile(srcFile)) {
+					emitter.onSuccess(STATUS_UNMATCHED);
+					return;
+				}
+			}
 		}
 		else {
 			srcJar = srcFile;
@@ -160,7 +182,45 @@ public class AppInstaller {
 		int result = checkDescriptor();
 		emitter.onSuccess(result);
 	}
+	private Descriptor parseJam() throws ConverterException, IOException {
+		if (!cacheDir.exists() && !cacheDir.mkdirs()) {
+			throw new ConverterException("Can't create cache dir");
+		}
+		HashMap<String, String> attrs = new HashMap<>();
+		try(BufferedReader br = new BufferedReader(new FileReader(srcFile))){
+			String str;
+			//declare a line counter
+			int lines = 0;
+			//reads from file until the next line is null.
+			while((str = br.readLine()) != null){
+				//increments line counter by 1
+				lines++;
+				String[] attribute = str.split("=");
+				if(attribute.length == 2){
+					Log.i(TAG,attribute[0].trim()+"="+attribute[1]);
+					if(attribute[0].trim().equals("PackageURL")){
+						List<String> path = uri.getPathSegments();
+						String lastSegment = path.get(path.size()-1);
+						String nameOfFile = lastSegment.substring(lastSegment.lastIndexOf('/'),lastSegment.length());
+						nameOfFile = nameOfFile.replace("/","");
+						attrs.put("PackageURL",nameOfFile.substring(0,nameOfFile.lastIndexOf(".")) + ".jar");
+						Log.i(TAG,attrs.get("PackageURL"));
 
+					}else{
+						attrs.put(attribute[0].trim(),attribute[1]);
+					}
+
+
+				}
+
+			}
+		}catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return new Descriptor(attrs);
+	}
 	Single<Integer> updateInfo(Uri jarUri) {
 		return Single.create(emitter -> {
 			srcJar = FileUtils.getFileForUri(context, jarUri);
