@@ -121,34 +121,34 @@ public class FileUtils {
 			throw new IOException("Can't create directory: " + tmpDir);
 		}
 		File file;
-		Boolean endsWithJam = uri.toString().toLowerCase().endsWith(".jam");
-		Boolean endsWithSP = uri.toString().toLowerCase().endsWith(".sp");
-
-		if(endsWithJam){
-			file = new File(tmpDir, TEMP_JAM_NAME);
-		}else if(endsWithSP){
-			file = new File(tmpDir, TEMP_SP_NAME);
-		}else{
-			try (InputStream in = context.getContentResolver().openInputStream(uri)) {
-				byte[] buf = new byte[BUFFER_SIZE];
-				int len;
-				if (in == null || (len = in.read(buf)) == -1)
-					throw new IOException("Can't read data from uri: " + uri);
-				if (buf[0] == 0x50 && buf[1] == 0x4B) {
-					file = new File(tmpDir, TEMP_JAR_NAME);
-				} else if (buf[0] == 'K' && buf[1] == 'J' && buf[2] == 'X') {
-					file = new File(tmpDir, TEMP_KJX_NAME);
-				}  else {
-					file = new File(tmpDir, TEMP_JAD_NAME);
-				}
-				try (OutputStream out = new FileOutputStream(file)) {
+		try (InputStream in = context.getContentResolver().openInputStream(uri)) {
+			byte[] buf = new byte[BUFFER_SIZE];
+			int len;
+			if (in == null || (len = in.read(buf)) == -1)
+				throw new IOException("Can't read data from uri: " + uri);
+			Boolean endsWithJam = uri.toString().toLowerCase().endsWith(".jam");
+			Boolean endsWithSP = uri.toString().toLowerCase().endsWith(".sp");
+			if(endsWithJam){
+				file = new File(tmpDir, TEMP_JAM_NAME);
+			}else if(endsWithSP){
+				file = new File(tmpDir, TEMP_SP_NAME);
+			}else if (buf[0] == 0x50 && buf[1] == 0x4B) {
+				file = new File(tmpDir, TEMP_JAR_NAME);
+			} else if (buf[0] == 'K' && buf[1] == 'J' && buf[2] == 'X') {
+				file = new File(tmpDir, TEMP_KJX_NAME);
+			}  else {
+				file = new File(tmpDir, TEMP_JAD_NAME);
+			}
+			try (OutputStream out = new FileOutputStream(file)) {
+				out.write(buf, 0, len);
+				while ((len = in.read(buf)) > 0) {
 					out.write(buf, 0, len);
-					while ((len = in.read(buf)) > 0) {
-						out.write(buf, 0, len);
-					}
 				}
 			}
 		}
+
+
+
 
 		return file;
 	}
