@@ -17,6 +17,7 @@
 package ru.woesss.j2me.installer;
 
 import android.app.Application;
+import android.content.ClipData;
 import android.net.Uri;
 import android.util.Log;
 import android.widget.Toast;
@@ -65,12 +66,12 @@ public class AppInstaller {
 	static final int STATUS_UNMATCHED = 3;
 	static final int STATUS_NEED_JAD = 4;
 	static final int STATUS_SUCCESS = 5;
-
+	static final int STATUS_NEED_REMAINING_FILES_FOR_JAM = 6;
 	private final int id;
 	private final Application context;
 	private final AppRepository appRepository;
 	private final File cacheDir;
-
+	//private boolean fromJam = false;
 	private Uri uri;
 	private Descriptor manifest;
 	private Descriptor newDesc;
@@ -80,6 +81,9 @@ public class AppInstaller {
 	private File tmpDir;
 	private AppItem currentApp;
 	private File srcFile;
+	private File srcSP;
+
+
 
 	AppInstaller(String path, Uri uri, Application context, AppRepository appRepository) {
 		id = -1;
@@ -111,6 +115,9 @@ public class AppInstaller {
 
 	/** Load and check app info from source */
 	void loadInfo(SingleEmitter<Integer> emitter) throws IOException, ConverterException {
+//		if(fromJam == true){
+//			fromJam = false;
+//		}
 		if (id != -1) {
 			currentApp = appRepository.get(id);
 			srcJar = new File(currentApp.getPathExt(), Config.MIDLET_RES_FILE);
@@ -156,6 +163,7 @@ public class AppInstaller {
 			parseKjx();
 			newDesc = new Descriptor(srcFile, true);
 		} else if(name.toLowerCase().endsWith(".jam")){
+			//fromJam = true;
 			newDesc = parseJam();
 			manifest = newDesc;
 			String url = newDesc.getJarUrl();
@@ -167,10 +175,7 @@ public class AppInstaller {
 			String host = uri.getHost();
 			if (isLocal && scheme == null && host == null) {
 				if (isContentUri && !FileUtils.isExternalStorageLegacy()) {
-					emitter.onSuccess(STATUS_NEED_JAD);
-					return;
-				} else if (!checkJarFile(srcFile)) {
-					emitter.onSuccess(STATUS_UNMATCHED);
+					emitter.onSuccess(STATUS_NEED_REMAINING_FILES_FOR_JAM);
 					return;
 				}
 			}
@@ -204,12 +209,9 @@ public class AppInstaller {
 						String nameOfFile = lastSegment.substring(lastSegment.lastIndexOf('/'),lastSegment.length());
 						nameOfFile = nameOfFile.replace("/","");
 						attrs.put("PackageURL",nameOfFile.substring(0,nameOfFile.lastIndexOf(".")) + ".jar");
-						Log.i(TAG,attrs.get("PackageURL"));
-
 					}else{
 						attrs.put(attribute[0].trim(),attribute[1]);
 					}
-
 
 				}
 
@@ -229,6 +231,37 @@ public class AppInstaller {
 				emitter.onSuccess(STATUS_UNMATCHED);
 				return;
 			}
+			int result = checkDescriptor();
+			emitter.onSuccess(result);
+		});
+	}
+
+	Single<Integer> updateInfo(ClipData clipData) {
+		return Single.create(emitter -> {
+			Uri SPUri = null;
+			Uri jarUri = null;
+			if(clipData != null){
+				for(int i = 0; i < clipData.getItemCount(); i++) {
+					if(clipData.getItemAt(i).getUri().toString().toLowerCase().endsWith(".jar")){
+						jarUri = clipData.getItemAt(i).getUri();
+					}
+					if(clipData.getItemAt(i).getUri().toString().toLowerCase().endsWith(".sp")){
+						SPUri = clipData.getItemAt(i).getUri();
+					}
+				}
+			}
+			if(SPUri == null || jarUri == null){
+				emitter.onError(new ConverterException("Please select both the SP file and the Jar file that corresponds to the Jam File."));
+			}else{
+				srcSP = FileUtils.getFileForUri(context, SPUri);
+				srcJar = FileUtils.getFileForUri(context, jarUri);
+			}
+
+			manifest = newDesc;
+//			if (!manifest.equals(newDesc)) {
+//				emitter.onSuccess(STATUS_UNMATCHED);
+//				return;
+//			}
 			int result = checkDescriptor();
 			emitter.onSuccess(result);
 		});

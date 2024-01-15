@@ -18,6 +18,7 @@ package ru.woesss.j2me.installer;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
@@ -66,6 +67,9 @@ public class InstallerDialog extends DialogFragment {
 
 	private final ActivityResultLauncher<String> openFileLauncher = registerForActivityResult(
 			FileUtils.getFilePicker(),
+			this::onPickFileResult);
+	private final ActivityResultLauncher<String> openFileLauncherWithMultipleSelections = registerForActivityResult(
+			FileUtils.getFilePickerWithMultipleSelections(),
 			this::onPickFileResult);
 
 	/**
@@ -194,6 +198,17 @@ public class InstallerDialog extends DialogFragment {
 		compositeDisposable.add(disposable);
 	}
 
+	private void onPickFileResult(ClipData clipData) {
+		if (clipData == null) {
+			return;
+		}
+		Disposable disposable = installer.updateInfo(clipData)
+				.subscribeOn(Schedulers.computation())
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribe(this::onProgress, this::onError);
+		compositeDisposable.add(disposable);
+	}
+
 	private void hideProgress() {
 		binding.installationProgress.setVisibility(View.GONE);
 		binding.installationStatus.setVisibility(View.GONE);
@@ -244,6 +259,14 @@ public class InstallerDialog extends DialogFragment {
 		mDialog.setCancelable(false);
 		mDialog.setCanceledOnTouchOutside(false);
 		mDialog.setMessage(getString(R.string.install_jar_needed));
+		btnOk.setOnClickListener(positive);
+		showButtons();
+	}
+	private void alertSelectRemainingFilesForJam(View.OnClickListener positive) {
+		hideProgress();
+		mDialog.setCancelable(false);
+		mDialog.setCanceledOnTouchOutside(false);
+		mDialog.setMessage("Select JAR and SP files");
 		btnOk.setOnClickListener(positive);
 		showButtons();
 	}
@@ -307,6 +330,9 @@ public class InstallerDialog extends DialogFragment {
 				return;
 			case AppInstaller.STATUS_NEED_JAD:
 				alertSelectJar(v -> openFileLauncher.launch(null));
+				return;
+			case AppInstaller.STATUS_NEED_REMAINING_FILES_FOR_JAM:
+				alertSelectRemainingFilesForJam(v -> openFileLauncherWithMultipleSelections.launch(null));
 				return;
 			default:
 				throw new IllegalStateException("Unexpected value: " + status);

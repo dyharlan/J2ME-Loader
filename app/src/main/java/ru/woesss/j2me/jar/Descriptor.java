@@ -17,6 +17,7 @@
 package ru.woesss.j2me.jar;
 
 import android.content.Context;
+import android.net.Uri;
 import android.text.SpannableStringBuilder;
 import android.util.Log;
 
@@ -142,7 +143,17 @@ public class Descriptor {
 		}else{
 			attributes.put(MICROEDITION_CONFIGURATION, "CLDC-1.1");
 		}
+
+		if(jamAttributes.containsKey("AppIcon")){
+			attributes.put(MIDLET_ICON, "AppIcon");
+		}else{
+			attributes.put(MIDLET_ICON, getURLForResource(R.drawable.imode));
+		}
 		verify();
+	}
+	public String getURLForResource (int resourceId) {
+		//use BuildConfig.APPLICATION_ID instead of R.class.getPackage().getName() if both are not same
+		return Uri.parse("android.resource://"+R.class.getPackage().getName()+"/" +resourceId).toString();
 	}
 
 	public int compareVersion(String version) {

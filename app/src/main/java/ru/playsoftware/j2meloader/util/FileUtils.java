@@ -17,6 +17,7 @@
 
 package ru.playsoftware.j2meloader.util;
 
+import android.content.ClipData;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
@@ -241,5 +242,9 @@ public class FileUtils {
 		} else {
 			return new SAFFileResultContract();
 		}
+	}
+
+	public static ActivityResultContract<String, ClipData> getFilePickerWithMultipleSelections() {
+		return new SAFFileResultContractMultipleSelections();
 	}
 }
