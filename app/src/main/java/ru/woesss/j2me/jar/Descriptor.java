@@ -149,6 +149,8 @@ public class Descriptor {
 		}else{
 			attributes.put(MIDLET_ICON, getURLForResource(R.drawable.imode));
 		}
+
+		attributes.put(MIDLET_N + "1",attributes.get(MIDLET_NAME) +", "+attributes.get(MIDLET_ICON)+", "+ jamAttributes.get("AppClass"));
 		verify();
 	}
 	public String getURLForResource (int resourceId) {
