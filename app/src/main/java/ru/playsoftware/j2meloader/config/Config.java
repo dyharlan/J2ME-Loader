@@ -48,6 +48,8 @@ public class Config {
 	public static final String MIDLET_MANIFEST_FILE = MIDLET_DEX_FILE + ".conf";
 	public static final String MIDLET_RES_DIR = "/res";
 	public static final String MIDLET_RES_FILE = "/res.jar";
+	public static final String MIDLET_SP_FILE = "/res.sp";
+
 	public static final String SCREENSHOTS_DIR;
 	public static final String SHADERS_DIR = "/shaders/";
 

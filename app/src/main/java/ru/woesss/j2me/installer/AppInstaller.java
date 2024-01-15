@@ -257,7 +257,6 @@ public class AppInstaller {
 				srcJar = FileUtils.getFileForUri(context, jarUri);
 			}
 
-			manifest = newDesc;
 //			if (!manifest.equals(newDesc)) {
 //				emitter.onSuccess(STATUS_UNMATCHED);
 //				return;
@@ -396,6 +395,10 @@ public class AppInstaller {
 			newDesc = manifest;
 		}
 		File resJar = new File(tmpDir, Config.MIDLET_RES_FILE);
+		File resSP = new File(tmpDir, Config.MIDLET_SP_FILE);
+		if(srcSP != null){
+			FileUtils.copyFileUsingChannel(srcSP, resSP);
+		}
 		FileUtils.copyFileUsingChannel(srcJar, resJar);
 		String icon = newDesc.getIcon();
 		File iconFile = new File(tmpDir, Config.MIDLET_ICON_FILE);
