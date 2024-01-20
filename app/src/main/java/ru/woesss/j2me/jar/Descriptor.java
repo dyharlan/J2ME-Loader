@@ -128,24 +128,24 @@ public class Descriptor {
 			attributes.put(MIDLET_JAR_URL, jamAttributes.get("PackageURL"));
 		}
 		if(jamAttributes.containsKey("AppSize")){
-			attributes.put(MIDLET_JAR_SIZE,"AppSize");
+			attributes.put(MIDLET_JAR_SIZE,jamAttributes.get("AppSize"));
 		}
 		if(jamAttributes.containsKey("AppClass")){
-			attributes.put(DOJA_APP_CLASS, "AppClass");
+			attributes.put(DOJA_APP_CLASS, jamAttributes.get("AppClass"));
 		}
 		if(jamAttributes.containsKey("ProfileVer")){
-			attributes.put(MICROEDITION_PROFILE, "ProfileVer");
+			attributes.put(MICROEDITION_PROFILE, jamAttributes.get("ProfileVer"));
 		}else{
 			attributes.put(MICROEDITION_PROFILE, "Doja-5.1");
 		}
 		if(jamAttributes.containsKey("ConfigurationVer")){
-			attributes.put(MICROEDITION_CONFIGURATION, "ConfigurationVer");
+			attributes.put(MICROEDITION_CONFIGURATION, jamAttributes.get("ConfigurationVer"));
 		}else{
 			attributes.put(MICROEDITION_CONFIGURATION, "CLDC-1.1");
 		}
 
 		if(jamAttributes.containsKey("AppIcon")){
-			attributes.put(MIDLET_ICON, "AppIcon");
+			attributes.put(MIDLET_ICON, jamAttributes.get("AppIcon"));
 		}else{
 			attributes.put(MIDLET_ICON, getURLForResource(R.drawable.imode));
 		}
