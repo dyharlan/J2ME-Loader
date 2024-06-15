@@ -164,6 +164,7 @@ public class AppInstaller {
 			newDesc = new Descriptor(srcFile, true);
 		} else if(name.toLowerCase().endsWith(".jam")){
 			//fromJam = true;
+			//call the jam parser
 			newDesc = parseJam();
 			manifest = newDesc;
 			String url = newDesc.getJarUrl();
@@ -187,6 +188,7 @@ public class AppInstaller {
 		int result = checkDescriptor();
 		emitter.onSuccess(result);
 	}
+	//Jam Parser
 	private Descriptor parseJam() throws ConverterException, IOException {
 		if (!cacheDir.exists() && !cacheDir.mkdirs()) {
 			throw new ConverterException("Can't create cache dir");
@@ -197,6 +199,7 @@ public class AppInstaller {
 			//declare a line counter
 			int lines = 0;
 			//reads from file until the next line is null.
+			//Put the Jam attrs to a map
 			while((str = br.readLine()) != null){
 				//increments line counter by 1
 				lines++;
@@ -204,9 +207,7 @@ public class AppInstaller {
 				if(attribute.length == 2){
 					Log.i(TAG,attribute[0].trim()+"="+attribute[1]);
 					if(attribute[0].trim().equals("PackageURL")){
-						//List<String> path = uri.getPathSegments();
-						//String lastSegment = path.get(path.size()-1);
-						//Log.i("Log?", "Last segment: " + lastSegment);
+						//check if path has slashes
 						int indexOfSlash = attribute[1].lastIndexOf('/');
 						String nameOfFile = "";
 						if(indexOfSlash != -1){
@@ -215,7 +216,6 @@ public class AppInstaller {
 						}else{
 							nameOfFile = attribute[1];
 						}
-
 						attrs.put("PackageURL",nameOfFile.substring(0,nameOfFile.lastIndexOf(".")) + ".jar");
 					}else{
 						attrs.put(attribute[0].trim(),attribute[1]);
@@ -229,6 +229,7 @@ public class AppInstaller {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		//call descriptor constructor that will bind jam attrs to j2me
 		return new Descriptor(attrs);
 	}
 	Single<Integer> updateInfo(Uri jarUri) {
@@ -243,7 +244,7 @@ public class AppInstaller {
 			emitter.onSuccess(result);
 		});
 	}
-
+	//allow us to select multiple files when a jam is installed.
 	Single<Integer> updateInfo(ClipData clipData) {
 		return Single.create(emitter -> {
 			Uri SPUri = null;
@@ -403,6 +404,7 @@ public class AppInstaller {
 			newDesc = manifest;
 		}
 		File resJar = new File(tmpDir, Config.MIDLET_RES_FILE);
+		//copy associated Scratchpad file, if it exists
 		File resSP = new File(tmpDir, Config.MIDLET_SP_FILE);
 		if(srcSP != null){
 			FileUtils.copyFileUsingChannel(srcSP, resSP);

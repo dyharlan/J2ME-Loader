@@ -197,7 +197,7 @@ public class InstallerDialog extends DialogFragment {
 				.subscribe(this::onProgress, this::onError);
 		compositeDisposable.add(disposable);
 	}
-
+	//This should allow us to select multiple files in the SAF document picker
 	private void onPickFileResult(ClipData clipData) {
 		if (clipData == null) {
 			return;
@@ -262,6 +262,7 @@ public class InstallerDialog extends DialogFragment {
 		btnOk.setOnClickListener(positive);
 		showButtons();
 	}
+	//naively (?) restart he dialog
 	private void alertSelectRemainingFilesForJam(View.OnClickListener positive) {
 		hideProgress();
 		mDialog.setCancelable(false);
