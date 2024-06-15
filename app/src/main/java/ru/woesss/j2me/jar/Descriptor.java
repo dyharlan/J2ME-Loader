@@ -108,6 +108,7 @@ public class Descriptor {
 		verify();
 
 	}
+	//Binding i-appli descriptors to standard J2ME
 	public Descriptor(HashMap<String, String> jamAttributes) throws IOException {
 		this.isJad = false;
 		if(jamAttributes.containsKey("AppName")){
