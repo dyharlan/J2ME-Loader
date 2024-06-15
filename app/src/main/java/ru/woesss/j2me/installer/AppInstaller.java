@@ -204,10 +204,18 @@ public class AppInstaller {
 				if(attribute.length == 2){
 					Log.i(TAG,attribute[0].trim()+"="+attribute[1]);
 					if(attribute[0].trim().equals("PackageURL")){
-						List<String> path = uri.getPathSegments();
-						String lastSegment = path.get(path.size()-1);
-						String nameOfFile = lastSegment.substring(lastSegment.lastIndexOf('/'),lastSegment.length());
-						nameOfFile = nameOfFile.replace("/","");
+						//List<String> path = uri.getPathSegments();
+						//String lastSegment = path.get(path.size()-1);
+						//Log.i("Log?", "Last segment: " + lastSegment);
+						int indexOfSlash = attribute[1].lastIndexOf('/');
+						String nameOfFile = "";
+						if(indexOfSlash != -1){
+							nameOfFile = attribute[1].substring(indexOfSlash).trim();
+							nameOfFile = nameOfFile.replace("/","");
+						}else{
+							nameOfFile = attribute[1];
+						}
+
 						attrs.put("PackageURL",nameOfFile.substring(0,nameOfFile.lastIndexOf(".")) + ".jar");
 					}else{
 						attrs.put(attribute[0].trim(),attribute[1]);
